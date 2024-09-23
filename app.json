@@ -31,6 +31,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a9156635-b57f-4423-a0fc-b8bd39f1c8db"
+      }
+    },
+    "owner": "yucehaydar"
   }
 }
