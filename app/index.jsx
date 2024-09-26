@@ -22,13 +22,10 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      {user && <Text>{user.fullName}</Text>} 
-      
-      {user ? (
-        <Redirect href="/(tabs)/home" />
-      ) : (
-        <Redirect href="/login" />
-      )}
+      {/* {user && <Text>{user.fullName}</Text>}
+
+      {user ? <Redirect href="/(tabs)/home" /> : <Redirect href="/login" />} */}
+      <Redirect href="/(tabs)/home" />
     </View>
   );
 }
