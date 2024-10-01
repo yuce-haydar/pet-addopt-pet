@@ -19,6 +19,7 @@ export default function TabLayout() {
           headerShown: false,
           tabBarIcon:({color})=><Ionicons name="heart" size={24} color={color} />
         }} />
+        
         <Tabs.Screen name="inbox" options={{
           title: 'Inbox',
           headerShown: false,

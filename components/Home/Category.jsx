@@ -21,13 +21,13 @@ const Category = ({ onCategorySelect }) => {
   const GetCategories = async () => {
     try {
       const snapshot = await getDocs(collection(db, "Category"));
-      const categoriesArray = []; // Tüm kategorileri saklamak için geçici bir dizi
-  
+      const categoriesArray = [];
+
       snapshot.forEach((doc) => {
-        categoriesArray.push(doc.data()); // Kategorileri diziye ekliyoruz
+        categoriesArray.push(doc.data());
       });
-  
-      setCategory(categoriesArray); // Tüm kategorileri tek seferde duruma ekliyoruz
+
+      setCategory(categoriesArray);
     } catch (error) {
       console.error("Kategori verileri alınamadı:", error);
     }
@@ -41,6 +41,7 @@ const Category = ({ onCategorySelect }) => {
         showsHorizontalScrollIndicator={false}
         horizontal={true}
         data={category}
+        keyExtractor={(item) => item.name}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[
@@ -49,10 +50,15 @@ const Category = ({ onCategorySelect }) => {
             ]}
             onPress={() => {
               setSelectedCategory(item.name);
-              onCategorySelect(item.name); // Prop olarak gelen fonksiyon çağrısı
+              onCategorySelect(item.name);
+              console.log(item.name);
             }}
           >
-            <Image style={styles.image} source={{ uri: item?.imageUrl }} />
+            {item?.imageUrl ? (
+              <Image style={styles.image} source={{ uri: item.imageUrl }} />
+            ) : (
+              <Text>No Image</Text>
+            )}
             <Text style={{ textAlign: "center", fontSize: 15 }}>{item.name}</Text>
           </TouchableOpacity>
         )}
@@ -80,17 +86,17 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     textAlign: "center",
     margin: 10,
-    backgroundColor: '#f5dc93', // Varsayılan arka plan rengi
+    backgroundColor: '#f5dc93',
     borderWidth: 1,
-    borderColor: '#0fa0fa', // Kenarlık rengi
+    borderColor: '#0fa0fa',
     padding: 20,
   },
   selectedCategory: {
-    backgroundColor: '#0fa0fa', // Seçili kategorinin arka plan rengi
+    backgroundColor: '#0fa0fa',
   },
   image: {
-    width: 60,
+    width: 40,
     borderRadius: 15,
-    height: 40,
+    height: 20,
   },
 });

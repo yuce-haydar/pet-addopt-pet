@@ -13,35 +13,42 @@ export default function Slider() {
   const getSliderData = async () => {
     try {
       const snapshot = await getDocs(collection(db, "Slider"));
+      const sliderArray = []; // Dizi oluşturulması
       snapshot.forEach((doc) => {
-        setSlider(slider=>[...slider,doc.data()]);
-        });
+        sliderArray.push(doc.data());
+      });
+      setSlider(sliderArray);
     } catch (error) {
-      console.error("Slider veri leri alınamadı:", error);
+      console.error("Slider verileri alınamadı:", error);
     }
   };
 
   return (
-    <View>
-        <FlatList showsHorizontalScrollIndicator={false} horizontal={true} data={slider} renderItem={({item,index})=>(
-            <View>
-                <Image source={{uri:item?.imageUrl}} style={styles.sliderImg}></Image>
-            </View>
-        )}>
-
-        </FlatList>
-    </View> 
-
-
-);
+    <View style={styles.sliderContainer}>
+      <FlatList
+        showsHorizontalScrollIndicator={false}
+        horizontal={true}
+        data={slider}
+        renderItem={({ item }) => (
+          <View>
+            <Image source={{ uri: item?.imageUrl }} style={styles.sliderImg} />
+          </View>
+        )}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    sliderImg:{
-        width: Dimensions.get("screen").width*0.9,
-        height:200,
-        borderRadius:15,
-        marginRight:10        ,
-        marginLeft:5
-    }
+  sliderContainer: {
+    height: 200, // Sabit yükseklik verildi
+    marginBottom: 10,
+  },
+  sliderImg: {
+    width: Dimensions.get("screen").width * 0.9,
+    height: 200,
+    borderRadius: 15,
+    marginRight: 10,
+    marginLeft: 5,
+  },
 });
