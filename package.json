@@ -31,6 +31,8 @@
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
     "firebase": "^10.13.2",
+    "lottie-ios": "^3.1.8",
+    "lottie-react-native": "^7.0.0",
     "pet-addopt-pet": "file:",
     "react": "^18.2.0",
     "react-dom": "18.2.0",

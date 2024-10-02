@@ -2,22 +2,71 @@ import { Image, StyleSheet, Text, View, ScrollView } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native";
-import { FontAwesome, MaterialCommunityIcons, Fontisto, MaterialIcons } from "@expo/vector-icons"; // İkonları içe aktarıyoruz
+import { FontAwesome, MaterialCommunityIcons, Fontisto, MaterialIcons } from "@expo/vector-icons"; 
 import { TouchableOpacity } from "react-native";
+import { doc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
+import { db } from '../../config/firebaseConfig'; // Firebase Firestore konfigürasyonu
 
 export default function PetDetails() {
   let pet = useLocalSearchParams();
   const navigation = useNavigation();
-  const [showFullDescription, setShowFullDescription] = useState(false); 
+  const [isFavorited, setIsFavorited] = useState(false); // Favori kontrolü için state
 
-  // `user` verisinin işlenmesi
-  try {
-    if (typeof pet.user === 'string') {
-      pet.user = JSON.parse(pet.user);
+  // Kullanıcı verisi
+  const userEmail = "haydar8w@gmail.com"; // Bu alanı giriş yapan kullanıcının e-postası ile dinamik olarak değiştirmelisiniz
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
+  useEffect(() => {
+    const fetchFavoriteStatus = async () => {
+      try {
+        const userRef = doc(db, "UserFavPet", userEmail);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.favorites && userData.favorites.includes(pet.id)) {
+            setIsFavorited(true);
+          }
+        }
+      } catch (error) {
+        console.error("Favori durumu alınamadı:", error);
+      }
+    };
+
+    fetchFavoriteStatus();
+  }, [pet.id]);
+
+  // Favoriye ekleme/çıkarma fonksiyonu
+  const toggleFavorite = async () => {
+    try {
+      const userRef = doc(db, "UserFavPet", userEmail);
+      const userDoc = await getDoc(userRef);
+
+      if (isFavorited) {
+        // Favoriyi Firestore'dan kaldır
+        await updateDoc(userRef, {
+          favorites: arrayRemove(pet.id),
+        });
+        setIsFavorited(false);
+      } else {
+        // Kullanıcı dökümanı varsa favorilere ekle
+        if (userDoc.exists()) {
+          await updateDoc(userRef, {
+            favorites: arrayUnion(pet.id),
+          });
+        } else {
+          // Eğer kullanıcı dökümanı yoksa, yeni bir döküman oluştur
+          await setDoc(userRef, {
+            email: userEmail,
+            favorites: [pet.id],
+          });
+        }
+        setIsFavorited(true);
+      }
+    } catch (error) {
+      console.error("Favori ekleme/çıkarma işlemi başarısız:", error);
     }
-  } catch (error) {
-    console.error('User verisi JSON.parse ile işlenemedi:', error);
-  }
+  };
 
   useEffect(() => {
     navigation.setOptions({
@@ -36,8 +85,15 @@ export default function PetDetails() {
         <View style={styles.infoContainer}>
           <View style={styles.headerRow}>
             <Text style={styles.name}>{pet?.name}</Text>
-            {/* Adres kısmına kalp ikonu ekliyoruz */}
-            <FontAwesome name="heart-o" size={24} color="#333" />
+            
+            {/* Kalp ikonu */}
+            <TouchableOpacity onPress={toggleFavorite}>
+              <FontAwesome 
+                name={isFavorited ? "heart" : "heart-o"} 
+                size={24} 
+                color={isFavorited ? "red" : "#333"} 
+              />
+            </TouchableOpacity>
           </View>
           <Text style={styles.address}>{pet?.address}</Text>
 
@@ -67,30 +123,28 @@ export default function PetDetails() {
               <Text style={styles.propertyText}>{pet?.weight} Kg</Text>
             </View>
           </View>
-
-          {/* About Section */}
-          <Text style={styles.sectionTitle}>About {pet?.name}</Text>
+ {/* About Section */}
+ <Text style={styles.sectionTitle}>About {pet.name}</Text>
           <Text style={styles.description}>
-            {showFullDescription ? pet?.about : `${pet?.about?.substring(0, 100)}...`}
+            {showFullDescription ? pet.about : `${pet.about.substring(0, 100)}...`}
           </Text>
           <TouchableOpacity onPress={() => setShowFullDescription(!showFullDescription)}>
-            <Text style={styles.readMoreText}>{showFullDescription ? "Read Less" : "Read More"}</Text>
+            <Text style={styles.readMoreText}>{showFullDescription ? 'Read Less' : 'Read More'}</Text>
           </TouchableOpacity>
 
           {/* Owner Info */}
           <View style={styles.ownerContainer}>
-          <Image source={{ uri: pet?.user?.userImage }} style={styles.ownerImage} />
-          <View style={styles.ownerInfo}>
-            <Text style={styles.ownerName}>{pet?.user?.userName}</Text>
-            <Text style={styles.ownerLabel}>Pet Owner</Text>
+            <Image source={{ uri: pet?.user?.userImage }} style={styles.ownerImage} />
+            <View style={styles.ownerInfo}>
+              <Text style={styles.ownerName}>{pet?.user?.userName}</Text>
+              <Text style={styles.ownerLabel}>Pet Owner</Text>
+            </View>
+            
+            {/* Send Message Icon */}
+            <TouchableOpacity style={styles.messageIconContainer}>
+              <MaterialIcons name="message" size={24} color="#333" />
+            </TouchableOpacity>
           </View>
-          
-          {/* Send Message Icon */}
-          <TouchableOpacity style={styles.messageIconContainer}>
-            <MaterialIcons name="send" size={24} color="#FABB00" />
-          </TouchableOpacity>
-        </View>
-
 
           {/* Adopt Button */}
           <TouchableOpacity style={styles.adoptButton}>
@@ -109,7 +163,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 250,
+    height: 300,
   },
   infoContainer: {
     padding: 20,
@@ -130,7 +184,7 @@ const styles = StyleSheet.create({
   },
   propertiesContainer: {
     flexDirection: "row",
-    flexWrap: "wrap", // İki sütun yapmak için
+    flexWrap: "wrap", 
     justifyContent: "space-between",
     marginVertical: 16,
   },
@@ -138,7 +192,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     padding: 15,
     borderRadius: 10,
-    width: "48%", // İki sütun için yarı genişlik
+    width: "48%", 
     alignItems: "center",
     marginBottom: 10,
     borderWidth: 1,
@@ -155,30 +209,10 @@ const styles = StyleSheet.create({
     color: "#555",
     marginTop: 5,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginVertical: 8,
-  },
-  description: {
-    fontSize: 16,
-    color: "gray",
-    marginBottom: 8,
-  },
-  readMoreText: {
-    color: "#FF6347",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
   ownerContainer: {
-    borderWidth:1,
-    borderColor:'#FABB00',
-    padding:10,
-    borderRadius:10,
-    flexDirection: "row", // İçerikleri yatayda hizalamak için
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // İçerikleri en sağa ve sola dağıtmak için
+    justifyContent: "space-between", 
     marginVertical: 16,
     paddingHorizontal: 10,
   },
@@ -188,8 +222,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   ownerInfo: {
-    flex: 1, // İçerik arasında boşluk bırakmak için
-    marginLeft: 12, // Resim ile metin arasında boşluk
+    flex: 1, 
+    marginLeft: 12, 
   },
   ownerName: {
     fontSize: 18,
@@ -199,15 +233,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "gray",
   },
-  ownerEmail: {
-    fontSize: 14,
-    color: "gray",
+  messageIconContainer: {
+    padding: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   adoptButton: {
-    backgroundColor: "#FABB00",
+    backgroundColor: "#FF6347",
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: "center",
+    marginTop: 20,
   },
   adoptButtonText: {
     color: "#fff",

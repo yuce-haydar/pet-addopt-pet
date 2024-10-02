@@ -19,7 +19,7 @@ export default function Home() {
         <PetListByCategory />
       </View>
       {/* Add New Pet Option */}
-      <TouchableOpacity style={styles.addNewPetButton}>
+      <TouchableOpacity style={styles.addNewPetButton} onPress={}>
         <MaterialIcons name="pets" size={24} color="black" />
         <Text>Add New Pet</Text>
       </TouchableOpacity>
