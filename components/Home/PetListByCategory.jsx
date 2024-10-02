@@ -1,4 +1,4 @@
-import { ActivityIndicator, StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, Text, FlatList } from 'react-native';
 import React, { useState } from 'react';
 import Category from './Category';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -14,15 +14,26 @@ const PetListByCategory = () => {
     try {
       setLoading(true);
       setError(null);
-
+  
       const q = query(collection(db, 'Pets'), where('category', '==', category));
       const querySnapshot = await getDocs(q);
-
+  
       const petsArray = [];
       querySnapshot.forEach((doc) => {
-        petsArray.push({ id: doc.id, ...doc.data() });
+        const documentData = doc.data();
+  
+        // `user` alanını kontrol et ve gerekirse `JSON.parse()` ile nesneye dönüştür
+        if (typeof documentData.user === 'string') {
+          try {
+            documentData.user = JSON.parse(documentData.user);
+          } catch (error) {
+            console.error('User verisi JSON.parse ile işlenemedi:', error);
+          }
+        }
+  
+        petsArray.push({ id: doc.id, ...documentData });
       });
-
+  
       setPetList(petsArray);
     } catch (error) {
       console.error('Pet listesi alınamadı:', error);
@@ -31,6 +42,7 @@ const PetListByCategory = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -61,9 +73,6 @@ const PetListByCategory = () => {
           contentContainerStyle={styles.flatListContainer}
         />
       </View>
-
-      {/* Add New Pet Button */}
-    
     </View>
   );
 };
@@ -111,18 +120,5 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     fontSize: 16,
     color: 'gray',
-  },
-  addNewPetButton: {
-    backgroundColor: '#f5dc93',
-    padding: 20,
-    borderRadius: 10,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addNewPetText: {
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

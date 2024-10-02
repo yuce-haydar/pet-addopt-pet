@@ -1,22 +1,36 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React from "react";
+import { useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native";
 
 export default function PetListItem({ pet }) {
+  const router = useRouter();
+
   return (
-    <View style={styles.petContainer}>
+    <TouchableOpacity
+      onPress={() => {
+        // `user` nesnesini `JSON.stringify` ile `string`e çevirerek aktarıyoruz
+        router.push({
+          pathname: "/pet-details",
+          params: {
+            ...pet,
+            user: JSON.stringify(pet.user),
+          },
+        });
+      }}
+      style={styles.petContainer}
+    >
       {pet.imageUrl && (
         <Image style={styles.image} source={{ uri: pet.imageUrl }} />
       )}
       <View style={styles.txtContainer}>
-        {/* Name ve Age aynı satırda, köşelerde */}
-          <Text style={styles.petName}>{pet.name}</Text>
+        <Text style={styles.petName}>{pet.name}</Text>
         <View style={styles.row}>
-        <Text style={styles.petBreed}>{pet.breed}</Text>
+          <Text style={styles.petBreed}>{pet.breed}</Text>
           <Text style={styles.petAge}>{pet.age} YRS</Text>
         </View>
-        {/* Breed, Name'in altında */}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -36,12 +50,12 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
     marginTop: 10,
-    width: '100%', // Metinlerin tam genişlikte hizalanması için
+    width: '100%',
   },
   row: {
-    flexDirection: "row", // Name ve Age'in aynı satırda olması için
-    width: "100%", // Name ve Age'in tam genişlikte olması için
-    justifyContent: "space-between", // Köşelerde konumlandırmak için
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
     alignItems: "center",
   },
   petName: {
@@ -51,15 +65,14 @@ const styles = StyleSheet.create({
   },
   petBreed: {
     fontSize: 14,
-
     color: "#555",
-    marginTop: 5, // Name ile Breed arasına biraz boşluk ekleyin
+    marginTop: 5,
   },
   petAge: {
     fontSize: 14,
     fontWeight: "bold",
     color: "#fabb00",
-    backgroundColor: "#f5d77f", // Sarı arka plan rengi
+    backgroundColor: "#f5d77f",
     paddingHorizontal: 2,
     paddingVertical: 2,
     borderRadius: 5,
