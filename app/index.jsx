@@ -2,16 +2,25 @@ import { Text, View, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native"; // Navigation için hook
 import { Link, Redirect, useRootNavigationState } from "expo-router"; // Eğer Link kullanıyorsanız
 import { Colors } from "@/constants/Colors";
-import { useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo"; // clerk-expo için güncel kullanım
+import { useEffect, useState } from "react";
+import { auth } from "./../config/firebaseConfig"; // Firebase auth'ı import ediyoruz
+import { onAuthStateChanged } from 'firebase/auth'; // Oturum değişikliklerini dinlemek için
 
 export default function Index() {
   const navigation = useNavigation(); // Yönlendirme fonksiyonunu kullan
-  const { user } = useUser(); // Kullanıcı bilgilerini al
   const rootNavigationState = useRootNavigationState(); // Navigation state'i al
+  const [user, setUser] = useState(null); // Kullanıcı durumunu yönetmek için state
 
   useEffect(() => {
+    // Firebase ile oturum durumunu dinleme
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser); // Kullanıcı oturumunu güncelle
+    });
+
     CheckNavLoaded();
+
+    // Oturum durumunu dinlemeyi durdurmak için cleanup fonksiyonu
+    return () => unsubscribe();
   }, [rootNavigationState]); // rootNavigationState'e bağımlı olmalı
 
   const CheckNavLoaded = () => {
@@ -22,10 +31,9 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      {/* {user && <Text>{user.fullName}</Text>}
+      {user && <Text>{user.displayName}</Text>}
 
-      {user ? <Redirect href="/(tabs)/home" /> : <Redirect href="/login" />} */}
-      <Redirect href="/(tabs)/home" />
+      {user ? <Redirect href="/(tabs)/home" /> : <Redirect href="/login" />}
     </View>
   );
 }

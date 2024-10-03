@@ -1,8 +1,8 @@
-import React from 'react';
-import { useFonts } from 'expo-font';
-import * as SecureStore from 'expo-secure-store';
-import { Stack } from 'expo-router';
-import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
+import React from "react";
+import { useFonts } from "expo-font";
+import * as SecureStore from "expo-secure-store";
+import { Stack } from "expo-router";
+import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 
 const tokenCache = {
   async getToken(key) {
@@ -11,11 +11,11 @@ const tokenCache = {
       if (item) {
         console.log(`${key} was used 🔐 \n`);
       } else {
-        console.log('No values stored under key: ' + key);
+        console.log("No values stored under key: " + key);
       }
       return item;
     } catch (error) {
-      console.error('SecureStore get item error: ', error);
+      console.error("SecureStore get item error: ", error);
       await SecureStore.deleteItemAsync(key);
       return null;
     }
@@ -24,7 +24,7 @@ const tokenCache = {
     try {
       await SecureStore.setItemAsync(key, value);
     } catch (error) {
-      console.error('SecureStore save item error: ', error);
+      console.error("SecureStore save item error: ", error);
     }
   },
 };
@@ -33,15 +33,15 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 if (!publishableKey) {
   throw new Error(
-    'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
+    "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env"
   );
 }
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    outfit: require('./../assets/fonts/Outfit-Regular.ttf'),
-    'outfit-medium': require('./../assets/fonts/Outfit-Medium.ttf'),
-    'outfit-bold': require('./../assets/fonts/Outfit-Bold.ttf'),
+    outfit: require("./../assets/fonts/Outfit-Regular.ttf"),
+    "outfit-medium": require("./../assets/fonts/Outfit-Medium.ttf"),
+    "outfit-bold": require("./../assets/fonts/Outfit-Bold.ttf"),
   });
 
   if (!fontsLoaded) {
@@ -49,22 +49,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider
-      publishableKey={publishableKey}
-      tokenCache={tokenCache}
-    >
-   
-        <Stack>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(tabs)"
-          options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="login/index"
-            options={{ headerShown: false }}
-          />
-        </Stack>
-      
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <Stack>
+        <Stack.Screen name="index" />
+
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="add-new-pet/index" />
+        <Stack.Screen name="login/index" options={{ headerShown: false }} />
+      </Stack>
     </ClerkProvider>
   );
 }

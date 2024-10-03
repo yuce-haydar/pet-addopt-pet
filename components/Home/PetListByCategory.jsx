@@ -1,5 +1,5 @@
 import { ActivityIndicator, StyleSheet, View, Text, FlatList } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Category from './Category';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebaseConfig';
@@ -9,19 +9,23 @@ const PetListByCategory = () => {
   const [petList, setPetList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('Dogs'); // Varsayılan kategori 'Dogs'
 
   const fetchPetList = async (category) => {
     try {
       setLoading(true);
       setError(null);
-  
-      const q = query(collection(db, 'Pets'), where('category', '==', category));
+
+      // Seçilen kategori yoksa varsayılan olarak 'Dogs' kategorisini kullan
+      const categoryToFetch = category || 'Dogs';
+
+      const q = query(collection(db, 'Pets'), where('category', '==', categoryToFetch));
       const querySnapshot = await getDocs(q);
-  
+
       const petsArray = [];
       querySnapshot.forEach((doc) => {
         const documentData = doc.data();
-  
+
         // `user` alanını kontrol et ve gerekirse `JSON.parse()` ile nesneye dönüştür
         if (typeof documentData.user === 'string') {
           try {
@@ -30,10 +34,10 @@ const PetListByCategory = () => {
             console.error('User verisi JSON.parse ile işlenemedi:', error);
           }
         }
-  
+
         petsArray.push({ id: doc.id, ...documentData });
       });
-  
+
       setPetList(petsArray);
     } catch (error) {
       console.error('Pet listesi alınamadı:', error);
@@ -42,13 +46,20 @@ const PetListByCategory = () => {
       setLoading(false);
     }
   };
-  
+
+  // Component ilk yüklendiğinde varsayılan kategori için pet listesini al
+  useEffect(() => {
+    fetchPetList(selectedCategory);
+  }, []);
 
   return (
     <View style={styles.container}>
       {/* Category bileşeni */}
       <View style={styles.categoryContainer}>
-        <Category onCategorySelect={(value) => fetchPetList(value)} />
+        <Category onCategorySelect={(value) => {
+          setSelectedCategory(value);
+          fetchPetList(value);
+        }} />
       </View>
 
       {/* Pet List Section */}

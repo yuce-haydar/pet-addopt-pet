@@ -1,15 +1,9 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, FlatList } from "react-native";
 import React, { useEffect, useState } from "react";
 import { collection, getDoc, getDocs, doc } from "firebase/firestore";
 import { db } from "../../config/firebaseConfig";
 import PetListItem from "./../../components/Home/PetListItem";
-import { useNavigation } from "@react-navigation/native"; // Geri tuşu için
+import { useNavigation } from "@react-navigation/native"; // Geri tuşu ve başlık için
 import LottieView from "lottie-react-native"; // Custom loading ikonu için
 
 export default function Favorite() {
@@ -18,7 +12,7 @@ export default function Favorite() {
   const [error, setError] = useState(null);
   const navigation = useNavigation(); // Geri tuşu ve başlık için
 
-  // Kullanıcı e-postası (bu, giriş yapan kullanıcıya göre dinamik olmalıdır)
+  // Kullanıcı e-postası (Bu, giriş yapan kullanıcıya göre dinamik olmalıdır)
   const userEmail = "haydar8w@gmail.com";
 
   // Favori petleri Firestore'dan çek
@@ -34,16 +28,25 @@ export default function Favorite() {
         const userData = userDoc.data();
         const favoriteIds = userData.favorites || [];
 
-        if (favoriteIds.length > 0) {
-          const petsCollectionRef = collection(db, "Pets");
-          const petsSnapshot = await getDocs(petsCollectionRef);
+        console.log("Kullanıcı Belgesi:", userData);
+        console.log("Favori Pet ID'leri:", favoriteIds);
 
+        if (favoriteIds.length > 0) {
           const petsArray = [];
-          petsSnapshot.forEach((petDoc) => {
-            if (favoriteIds.includes(petDoc.id)) {
-              petsArray.push({ id: petDoc.id, ...petDoc.data() });
+
+          // Favori pet ID'leri üzerinde döngü yaparak her birini Firestore'dan al
+          for (let petId of favoriteIds) {
+            try {
+              const petRef = doc(db, "Pets", petId);
+              const petDoc = await getDoc(petRef);
+
+              if (petDoc.exists()) {
+                petsArray.push({ id: petDoc.id, ...petDoc.data() });
+              }
+            } catch (error) {
+              console.error(`Pet ID'si ${petId} alınırken hata oluştu:`, error);
             }
-          });
+          }
 
           setFavoritePets(petsArray);
         } else {
@@ -61,6 +64,10 @@ export default function Favorite() {
   };
 
   useEffect(() => {
+    // Sayfa yüklendiğinde favori petleri al
+    fetchFavoritePets();
+
+    // Navigation başlığını ayarla
     navigation.setOptions({
       headerTransparent: true,
       headerTitle: "Favorite Pets",
@@ -107,13 +114,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#fff",
   },
-  backButton: {
-    marginLeft: 10,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: "#000",
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
   flatListContainer: {
     justifyContent: "space-between",
     paddingBottom: 20,
+    marginTop: 40,
   },
   errorText: {
     color: "red",

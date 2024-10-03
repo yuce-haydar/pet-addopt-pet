@@ -6,8 +6,11 @@ import PetListByCategory from "../../components/Home/PetListByCategory";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router"; // `useRouter` import edildi
 
 export default function Home() {
+  const router = useRouter(); // `useRouter` kullanılıyor
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -19,7 +22,13 @@ export default function Home() {
         <PetListByCategory />
       </View>
       {/* Add New Pet Option */}
-      <TouchableOpacity style={styles.addNewPetButton} onPress={}>
+      <TouchableOpacity
+        style={styles.addNewPetButton}
+        onPress={() => {
+          // router.push ile yeni sayfaya yönlendirme
+          router.push("/add-new-pet"); 
+        }}
+      >
         <MaterialIcons name="pets" size={24} color="black" />
         <Text>Add New Pet</Text>
       </TouchableOpacity>

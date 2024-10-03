@@ -1,101 +1,41 @@
-import React, { useCallback } from 'react'
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
-import * as WebBrowser from 'expo-web-browser'
-import  Colors  from '../../constants/Colors'
-import { useOAuth } from '@clerk/clerk-expo'
-import * as Linking from 'expo-linking'
+import React, { useState } from 'react';
+import { View, TextInput, Button, StyleSheet } from 'react-native';
+import { login } from './../../config/firebaseAuthConfig'; // Giriş fonksiyonunu import ediyoruz
 
-export const useWarmUpBrowser = () => {
-  React.useEffect(() => {
-    // Warm up the android browser to improve UX
-    // https://docs.expo.dev/guides/authentication/#improving-user-experience
-    void WebBrowser.warmUpAsync()
-    return () => {
-      void WebBrowser.coolDownAsync()
-    }
-  }, [])
-}
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-WebBrowser.maybeCompleteAuthSession()
-export default function LoginScreenf() {
-  useWarmUpBrowser();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' })
-  const onPress = useCallback(async () => {
+  const handleLogin = async () => {
     try {
-      const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow({
-        redirectUrl: Linking.createURL('/home', { scheme: 'myapp' }),
-      })
-
-      if (createdSessionId) {
-
-      } else {
-        // Use signIn or signUp for next steps such as MFA
-      }
-    } catch (err) {
-      console.error('OAuth error', err)
+      await login(email, password);
+      alert('Giriş başarılı!');
+    } catch (error) {
+      alert('Giriş sırasında hata oluştu: ' + error.message);
     }
-  }, [])
-
+  };
 
   return (
     <View style={styles.container}>
-      <Image source={require('./../../assets/images/login.png')} style={styles.image} />
-   <View style={styles.container2}>
-   <Text style={styles.text}>Ready to make new friend ?</Text>
-    <Text style={styles.text2} >Lets adopt the pet which you like and make there life happy again</Text>
-    <TouchableOpacity onPress={onPress} style={styles.btn}>
-      <Text style={styles.txtBtn}>Get Started</Text>
-    </TouchableOpacity>
-   </View>
+      <TextInput placeholder="E-posta" value={email} onChangeText={setEmail} style={styles.input} />
+      <TextInput placeholder="Şifre" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+
+      <Button title="Giriş Yap" onPress={handleLogin} />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.WHITE,
-
-    width: '100%',
-   
-  },
-  image: {
-    width: '100%',
-    height: 500,
-   
-  },
-  container2: {
-
     padding: 20,
-    display: 'flex',
-    alignItems: 'center',
+    justifyContent: 'center',
   },
-  text: {
-    fontSize: 40,
-    fontFamily: 'outfit-bold',
-    fontWeight: 'bold',
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  text2: {
-    fontSize: 18,
-    fontFamily: 'outfit',   
-    textAlign: 'center',
-    paddingTop: 20,
-    color:Colors.GRAY,
-  },
-  btn: {
-    backgroundColor: Colors.YELLOW,
-    width: '100%',
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
     padding: 10,
-    borderRadius: 20,
-
-    alignItems: 'center',
-    marginTop: 60,
+    marginBottom: 10,
+    borderRadius: 5,
   },
-  txtBtn: {
-    color: Colors.BLACK,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-})
+});

@@ -1,12 +1,11 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// firebaseConfig.js
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase SDK'sını uyumluluk katmanıyla birlikte içe aktarın
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
+import 'firebase/compat/storage';
+
+// Firebase projenizin yapılandırma ayarları
 const firebaseConfig = {
   apiKey: "AIzaSyCQFdJm67qIWsX2x-g4CUW193hOuWxUa0s",
   authDomain: "pet-opt.firebaseapp.com",
@@ -17,6 +16,14 @@ const firebaseConfig = {
   measurementId: "G-574V769P1R"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+// Firebase'i başlatın
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+// Firestore ve Storage referanslarını alın
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+// firebase, db ve storage'ı dışa aktarın
+export { firebase, db, storage };

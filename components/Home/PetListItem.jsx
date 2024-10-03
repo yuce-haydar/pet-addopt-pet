@@ -37,12 +37,12 @@ export default function PetListItem({ pet }) {
 const styles = StyleSheet.create({
   petContainer: {
     alignItems: "center",
-    padding: 10,
+    
     borderRadius: 10,
   },
   image: {
     width: 150,
-    height: 150,
+    height: 100,
     borderRadius: 10,
   },
   txtContainer: {
