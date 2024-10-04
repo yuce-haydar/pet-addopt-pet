@@ -1,9 +1,10 @@
 // firebaseConfig.js
 
-// Firebase SDK'sını uyumluluk katmanıyla birlikte içe aktarın
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
-import 'firebase/compat/storage';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage'ı import edin
 
 // Firebase projenizin yapılandırma ayarları
 const firebaseConfig = {
@@ -16,14 +17,17 @@ const firebaseConfig = {
   measurementId: "G-574V769P1R"
 };
 
-// Firebase'i başlatın
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
 
-// Firestore ve Storage referanslarını alın
-const db = firebase.firestore();
-const storage = firebase.storage();
+// Firebase uygulamasını başlat
+const app = initializeApp(firebaseConfig);
 
-// firebase, db ve storage'ı dışa aktarın
-export { firebase, db, storage };
+// Firebase Auth'u AsyncStorage ile başlatın
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// Firestore ve Storage'ı başlatın
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+export { db, storage, auth };

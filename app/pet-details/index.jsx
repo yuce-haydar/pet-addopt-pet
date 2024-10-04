@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View, ScrollView } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native";
 import { FontAwesome, MaterialCommunityIcons, Fontisto, MaterialIcons } from "@expo/vector-icons"; 
 import { TouchableOpacity } from "react-native";
@@ -72,9 +72,22 @@ export default function PetDetails() {
     navigation.setOptions({
       headerTransparent: true,
       headerTitle: "",
+     
     });
+    console.log(pet)
   }, []);
+  const handleAdoptMePress = () => {
+   
+    router.push({
+      pathname: "/ChatScreen",
+      params: {
+        ownerId: pet.ownerId,
+        animalId: pet.pet_id,
+      },
+    });
+    
 
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -147,7 +160,7 @@ export default function PetDetails() {
           </View>
 
           {/* Adopt Button */}
-          <TouchableOpacity style={styles.adoptButton}>
+          <TouchableOpacity style={styles.adoptButton} onPress={handleAdoptMePress}>
             <Text style={styles.adoptButtonText}>Adopt Me</Text>
           </TouchableOpacity>
         </View>

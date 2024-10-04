@@ -1,16 +1,15 @@
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
-import { collection, getDoc, getDocs, doc } from "firebase/firestore";
+import { collection, getDoc, doc } from "firebase/firestore";
 import { db } from "../../config/firebaseConfig";
-import PetListItem from "./../../components/Home/PetListItem";
-import { useNavigation } from "@react-navigation/native"; // Geri tuşu ve başlık için
-import LottieView from "lottie-react-native"; // Custom loading ikonu için
+import PetListItem from "../../components/Home/PetListItem";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Favorite() {
   const [favoritePets, setFavoritePets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigation = useNavigation(); // Geri tuşu ve başlık için
+  const navigation = useNavigation();
 
   // Kullanıcı e-postası (Bu, giriş yapan kullanıcıya göre dinamik olmalıdır)
   const userEmail = "haydar8w@gmail.com";
@@ -78,12 +77,7 @@ export default function Favorite() {
     <View style={styles.container}>
       {loading && (
         <View style={styles.loadingContainer}>
-          <LottieView
-            source={require("../../assets/loading.json")} // Lottie animasyon dosyanızın yolu
-            autoPlay
-            loop
-            style={styles.loadingAnimation}
-          />
+          <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
 
@@ -93,17 +87,19 @@ export default function Favorite() {
         <Text style={styles.emptyText}>Henüz favorilere eklenmiş pet yok.</Text>
       )}
 
-      <FlatList
-        data={favoritePets}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <PetListItem pet={item} />
-          </View>
-        )}
-        numColumns={2} // İki sütunlu düzen
-        contentContainerStyle={styles.flatListContainer}
-      />
+      {!loading && favoritePets.length > 0 && (
+        <FlatList
+          data={favoritePets}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <PetListItem pet={item} />
+            </View>
+          )}
+          numColumns={2}
+          contentContainerStyle={styles.flatListContainer}
+        />
+      )}
     </View>
   );
 }
@@ -115,13 +111,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   loadingContainer: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-  },
-  loadingAnimation: {
-    width: 100,
-    height: 100,
+    backgroundColor: 'rgba(255,255,255,0.7)', // Optional: to dim the background
   },
   card: {
     backgroundColor: "#f9f9f9",
@@ -140,7 +137,7 @@ const styles = StyleSheet.create({
   flatListContainer: {
     justifyContent: "space-between",
     paddingBottom: 20,
-    marginTop: 40,
+    marginTop: 30,
   },
   errorText: {
     color: "red",
