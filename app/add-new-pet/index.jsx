@@ -1,4 +1,3 @@
-// Gerekli kütüphanelerin içe aktarılması
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -14,7 +13,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import { firebase, db, storage } from '../../config/firebaseConfig'; // Uyumluluk katmanını kullanıyoruz
+import { db, storage, auth } from '../../config/firebaseConfig'; // Firebase ayarlarını import ediyoruz
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Gerekli fonksiyonları import ediyoruz
+import { doc, setDoc } from 'firebase/firestore'; // Firestore fonksiyonlarını import ediyoruz
 
 export default function AddNewPet() {
   // Form durum değişkenleri
@@ -31,12 +32,9 @@ export default function AddNewPet() {
   const [imageUri, setImageUri] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // Kullanıcı verileri (varsayılan)
-  const user = {
-    fullName: 'Default User',
-    primaryEmailAddress: { emailAddress: 'user@example.com' },
-    imageUrl: 'https://example.com/user-profile.jpg',
-  };
+  // Kullanıcı verileri
+  const user = auth.currentUser;
+  console.log('Kullanıcı:', user);
 
   // Resim seçme fonksiyonu
   const pickImage = async () => {
@@ -118,24 +116,23 @@ export default function AddNewPet() {
       });
 
       // Resmi Firebase Storage'daki 'addpet' klasörüne yükleyin
-      const imageRef = storage.ref().child(`addpet/${docId}.jpg`);
-      await imageRef.put(blob);
+      const imageRef = ref(storage, `addpet/${docId}.jpg`);
+      await uploadBytes(imageRef, blob);
 
       // Blob'u serbest bırakın
       blob.close();
 
       // Resmin indirme URL'sini alın
-      const imageUrl = await imageRef.getDownloadURL();
+      const imageUrl = await getDownloadURL(imageRef);
 
       // Form verilerini Firestore'a kaydedin
-      await db.collection('Pets').doc(docId).set({
+      await setDoc(doc(db, 'Pets', docId), {
         ...formData,
         imageUrl: imageUrl,
-        username: user?.fullName,
-        email: user?.primaryEmailAddress?.emailAddress,
-        userImage: user?.imageUrl,
-        id: docId,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        ownerId: user?.uid, // Evcil hayvanı ekleyen kullanıcının uid'si
+        ownerName: user?.displayName || 'Anonymous', // Kullanıcının adı
+        ownerEmail: user?.email, // Kullanıcının email adresi
+        createdAt: new Date(),
       });
 
       Alert.alert('Başarılı', 'Evcil hayvan başarıyla eklendi!');
@@ -171,10 +168,7 @@ export default function AddNewPet() {
             {imageUri ? (
               <Image source={{ uri: imageUri }} style={styles.image} />
             ) : (
-              <Image
-                source={require('../../assets/images/bone.png')}
-                style={styles.image}
-              />
+              <Image source={require('../../assets/images/bone.png')} style={styles.image} />
             )}
           </TouchableOpacity>
         </View>
@@ -273,7 +267,6 @@ export default function AddNewPet() {
     </SafeAreaView>
   );
 }
-
 
 // Stiller
 const styles = StyleSheet.create({

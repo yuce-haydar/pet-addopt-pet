@@ -44,7 +44,7 @@ export default function ChatScreen() {
         }
 
         const messagesRef = collection(db, 'chats', chatIdGenerated, 'messages');
-        const q = query(messagesRef, orderBy('timestamp', 'asc')); // Mesajları eskiden yeniye doğru sıralayın
+        const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
         unsubscribe = onSnapshot(q, (querySnapshot) => {
           const messagesFirestore = querySnapshot.docs.map(doc => ({
@@ -112,7 +112,6 @@ export default function ChatScreen() {
         data={messages}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        // inverted={true} Bu satırı kaldırdık
       />
       <View style={styles.inputContainer}>
         <TextInput
@@ -126,7 +125,6 @@ export default function ChatScreen() {
     </View>
   );
 }
-
 // Styles for the ChatScreen
 const styles = StyleSheet.create({
   container: {

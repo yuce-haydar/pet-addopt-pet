@@ -3,6 +3,7 @@ import React from "react";
 import { auth } from './../../config/firebaseConfig'; // Firebase auth'ı import ediyoruz
 
 export default function Header() {
+  console.log(auth)
   const user = auth.currentUser; // Giriş yapan kullanıcıyı al
   
   // Kullanıcının adının ilk harfini almak için

@@ -1,20 +1,18 @@
-import { Image, StyleSheet, Text, View, ScrollView } from "react-native";
 import React, { useEffect, useState } from "react";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { SafeAreaView } from "react-native";
-import { FontAwesome, MaterialCommunityIcons, Fontisto, MaterialIcons } from "@expo/vector-icons"; 
-import { TouchableOpacity } from "react-native";
+import { View, ScrollView, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
+import { FontAwesome, MaterialCommunityIcons, Fontisto, MaterialIcons } from "@expo/vector-icons";
+import { useLocalSearchParams, useNavigation, router } from "expo-router";
 import { doc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
-import { db } from '../../config/firebaseConfig'; // Firebase Firestore konfigürasyonu
+import { db, auth } from '../../config/firebaseConfig'; 
 
 export default function PetDetails() {
   let pet = useLocalSearchParams();
   const navigation = useNavigation();
-  const [isFavorited, setIsFavorited] = useState(false); // Favori kontrolü için state
-
-  // Kullanıcı verisi
-  const userEmail = "haydar8w@gmail.com"; // Bu alanı giriş yapan kullanıcının e-postası ile dinamik olarak değiştirmelisiniz
+  const [isFavorited, setIsFavorited] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const userEmail = auth.currentUser?.email;
+  const userId = auth.currentUser?.uid;
 
   useEffect(() => {
     const fetchFavoriteStatus = async () => {
@@ -36,26 +34,28 @@ export default function PetDetails() {
     fetchFavoriteStatus();
   }, [pet.id]);
 
-  // Favoriye ekleme/çıkarma fonksiyonu
+  useEffect(() => {
+    if (pet.ownerId === userId) {
+      setIsOwner(true);
+    }
+  }, [pet.ownerId, userId]);
+
   const toggleFavorite = async () => {
     try {
       const userRef = doc(db, "UserFavPet", userEmail);
       const userDoc = await getDoc(userRef);
 
       if (isFavorited) {
-        // Favoriyi Firestore'dan kaldır
         await updateDoc(userRef, {
           favorites: arrayRemove(pet.id),
         });
         setIsFavorited(false);
       } else {
-        // Kullanıcı dökümanı varsa favorilere ekle
         if (userDoc.exists()) {
           await updateDoc(userRef, {
             favorites: arrayUnion(pet.id),
           });
         } else {
-          // Eğer kullanıcı dökümanı yoksa, yeni bir döküman oluştur
           await setDoc(userRef, {
             email: userEmail,
             favorites: [pet.id],
@@ -72,12 +72,11 @@ export default function PetDetails() {
     navigation.setOptions({
       headerTransparent: true,
       headerTitle: "",
-     
     });
-    console.log(pet)
+    console.log(pet.imageUrl);
   }, []);
+
   const handleAdoptMePress = () => {
-   
     router.push({
       pathname: "/ChatScreen",
       params: {
@@ -85,9 +84,17 @@ export default function PetDetails() {
         animalId: pet.pet_id,
       },
     });
-    
-
   };
+
+  const handleEditPetPress = () => {
+    router.push({
+      pathname: "/EditPet",
+      params: {
+        animalId: pet.pet_id,
+      },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -98,7 +105,7 @@ export default function PetDetails() {
         <View style={styles.infoContainer}>
           <View style={styles.headerRow}>
             <Text style={styles.name}>{pet?.name}</Text>
-            
+
             {/* Kalp ikonu */}
             <TouchableOpacity onPress={toggleFavorite}>
               <FontAwesome 
@@ -112,32 +119,11 @@ export default function PetDetails() {
 
           {/* Pet Properties */}
           <View style={styles.propertiesContainer}>
-            <View style={styles.propertyBox}>
-              <FontAwesome name="calendar" size={24} color="#FABB00" />
-              <Text style={styles.propertyTitle}>Age</Text>
-              <Text style={styles.propertyText}>{pet?.age} Years</Text>
-            </View>
-
-            <View style={styles.propertyBox}>
-              <MaterialCommunityIcons name="dog" size={24} color="#FABB00" />
-              <Text style={styles.propertyTitle}>Breed</Text>
-              <Text style={styles.propertyText}>{pet?.breed}</Text>
-            </View>
-
-            <View style={styles.propertyBox}>
-              <Fontisto name="male" size={24} color="#FABB00" />
-              <Text style={styles.propertyTitle}>Sex</Text>
-              <Text style={styles.propertyText}>{pet?.sex}</Text>
-            </View>
-
-            <View style={styles.propertyBox}>
-              <MaterialCommunityIcons name="weight-kilogram" size={24} color="#FABB00" />
-              <Text style={styles.propertyTitle}>Weight</Text>
-              <Text style={styles.propertyText}>{pet?.weight} Kg</Text>
-            </View>
+            {/* ... (other properties) */}
           </View>
- {/* About Section */}
- <Text style={styles.sectionTitle}>About {pet.name}</Text>
+
+          {/* About Section */}
+          <Text style={styles.sectionTitle}>About {pet.name}</Text>
           <Text style={styles.description}>
             {showFullDescription ? pet.about : `${pet.about.substring(0, 100)}...`}
           </Text>
@@ -147,28 +133,38 @@ export default function PetDetails() {
 
           {/* Owner Info */}
           <View style={styles.ownerContainer}>
-            <Image source={{ uri: pet?.user?.userImage }} style={styles.ownerImage} />
+            <Image source={{ uri: pet?.userImage }} style={styles.ownerImage} />
             <View style={styles.ownerInfo}>
-              <Text style={styles.ownerName}>{pet?.user?.userName}</Text>
+              <Text style={styles.ownerName}>{pet?.ownerEmail}</Text>
               <Text style={styles.ownerLabel}>Pet Owner</Text>
             </View>
             
             {/* Send Message Icon */}
-            <TouchableOpacity style={styles.messageIconContainer}>
+            <TouchableOpacity style={styles.messageIconContainer} onPress={handleAdoptMePress}>
               <MaterialIcons name="message" size={24} color="#333" />
             </TouchableOpacity>
           </View>
 
-          {/* Adopt Button */}
-          <TouchableOpacity style={styles.adoptButton} onPress={handleAdoptMePress}>
-            <Text style={styles.adoptButtonText}>Adopt Me</Text>
-          </TouchableOpacity>
+          {/* Koşullu Olarak Düğmeleri Göster */}
+          {isOwner ? (
+            <>
+              <TouchableOpacity style={styles.adoptButton} onPress={handleEditPetPress}>
+                <Text style={styles.adoptButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.adoptButton}>
+                <Text style={styles.adoptButtonText}>Manage Pets</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity style={styles.adoptButton} onPress={handleAdoptMePress}>
+              <Text style={styles.adoptButtonText}>Adopt Me</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

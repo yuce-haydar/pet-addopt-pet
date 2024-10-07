@@ -32,15 +32,17 @@ export default function Inbox() {
           const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
 
           try {
-            const otherUserDoc = await getDoc(doc(db, 'users', otherUserId));
+            const otherUserDoc = await getDoc(doc(db, 'Users', otherUserId));
             const otherUserData = otherUserDoc.exists() ? otherUserDoc.data() : null;
-
+            console.log('otherUserData:', otherUserData); 
+            console.log('chatData:', chatData);
+            console.log('otherUserDoc:', otherUserDoc);
             return {
               id: docSnapshot.id,
               lastMessage: chatData.lastMessage,
               lastUpdated: chatData.lastUpdated,
               userName: otherUserData?.name || 'Unknown',
-              userProfilePicture: otherUserData?.profilePicture || 'https://example.com/default-avatar.png',
+              userProfilePicture: otherUserData?.profilePicture || './../../assets/images/avatar.png',
               animalId: chatData.animalId,
               otherUserId: otherUserId,
             };
@@ -51,7 +53,7 @@ export default function Inbox() {
               lastMessage: chatData.lastMessage,
               lastUpdated: chatData.lastUpdated,
               userName: 'Unknown',
-              userProfilePicture: 'https://example.com/default-avatar.png',
+              userProfilePicture: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKgAAACUCAMAAAAwLZJQAAAAYFBMVEX///9UWV3a29xXXWBPVFhLUVVHTVJKT1RBR0yAg4b7+/v19fXV1tdgZGg+REnn6OiytLW6vL11eXyJjI6dn6FqbnHBwsPi4uM3PkMuNjzu7+/LzM2SlZenqqspMTdvc3bQRQCXAAAEU0lEQVR4nO2c2bKrKhBAYwTUKM5THOL//+XRmNyd8crQQKxiPe23vaobmqnN4QDCqclyHyPnCYT9PGtOMP8BhLAuiP9ieXP1SVGHpv3upBThT5YrGNPUtOFCmGH/u+WKjzPjUY2CdktzoQ0is57l/yX9aQCg0qBmUm1m/SH/VWLKs6eM4bwFlfaGPL2PFek7yDNimnKk/Y5voFClnOG8BVW7aSQQz2tMNZepSCie15hqNQ0nrvn+CJ50LlIBEfV0HBLo86yZls1vtLUuz4TKeDoO1bVElRKJXyCalv2jYGX6wz9qEc09WVEv1+HZxLKejhM3GkQL4RL6By7UezaSU36Fqg9pJjnlV0im2jMMADI/5z5QvZAmIAGdQ6q66NcAc34hVr2OwmR+yb1iUelif8dT69kBZX7OfadUVPQE8o7iMwlMFV1QXElLoLk0zya1e71C+FD3ClK73AdwomrrkxW1or8uuptZv5s6msJtStReQO5mrd/N7ukAF1G1nvvZ4WdQZybV5+UEKPe+6lPobs71hxTmpkT9M85u7p52c5t3OEq9NKy0Wq6cc+mQYi03zoej9HQieu7wT4Psq8igqcVIduLrmPIrcnePym8cH8hl3kL1zKSVrhJ/Bq8Ub0Sf2ct7/TxML2KeF40DdEXsAlL9s807ItsoDZumD/BnX3/eV3qXr5PMNdRJNi9ROU9vXq5tQXonHFrGOoXawWwLaTQRBlVEJsP9o3NQR7rdkUtH4x25M8l4/tyJfYumfx6NdY6+kk4O+VgBMHGmn2jF/o9+DHD8PFwRiUkw9r/Uh38lbPqyas9tG8+08x9V2Te/MDS/kByjvo+OPzMqLRaLZWeEYdclSdeFP1fqT13SRH1aFrlL2vNMe+X6F3HzokzrqEk6swtpF2XjEFQojn3ioQ87KIQw8eMYV8EwZpHWm4c/orKiLvos+C7sEeTSqtS8fe6icbrEvB/fXPdTl2rUFdmwLqeY5fzxVXYqNXzYeCwoEre8uyJaKL10TmraAj3Y45ZmqraCzUhjsE6NOa4xHVWc9MPB4Z89G6qeA37YT8oYrEnjERyXkAPglG2f3UXxaQa2aiX563fekCCcwwQ1TFnvl4RV2xRgqCYyX4OxQgLpoEZ8d6CiYFdyF5DKrkKsILlb81FD2u+QUdxT9ps1TlPhbr1BWfH8jD+IeY6aPWdToezDtOPwITKjaiVr+xYe90tU52iqS88gh/ecIv9NpRi8X2LqLKDP8JXTxjWS+AXk8mz7A0OJX/A4OkujszlPxzmz708mY4lfQBOrZ2/UczZlfC4/FQZH6IJXsJ2iGrOaC2wTX+QnXWBh/IEY8eYrKFDF4tkBNLLK0rKs+LXxzM+5Z9lEDYbn/ILHstc3P0TZBmkI0r4uC92+Oklc05IL7vbNSfMbotsl//gbottX/FaUCysKjRWFxopCY0WhsaLQWFForCg0VhQaKwqNFYVmx6L/AI54VJuqB6haAAAAAElFTkSuQmCC',
               animalId: chatData.animalId,
               otherUserId: otherUserId,
             };
@@ -75,6 +77,7 @@ export default function Inbox() {
   }
 
   const renderItem = ({ item }) => (
+    console.log('item:', item),
     <TouchableOpacity
       style={styles.chatItem}
       onPress={() => router.push({
