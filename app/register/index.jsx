@@ -14,25 +14,28 @@ export default function RegisterScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    // Şifrelerin eşleşip eşleşmediğini kontrol etme
     if (password !== confirmPassword) {
       Alert.alert('Hata', 'Şifreler eşleşmiyor!');
       return;
     }
 
     try {
+      setLoading(true); // Yüklenme durumunu başlat
       // Firebase Authentication ile kullanıcı oluşturma
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const currentUser = userCredential.user;
 
-      // Kullanıcı profilini güncelleme
+      // Kullanıcı profilini güncelleme (displayName)
       await updateProfile(currentUser, {
         displayName: displayName,
       });
 
       // Kullanıcı bilgilerini Firestore'da saklama
-      await setDoc(doc(db, 'Users', currentUser.uid), { // 'uid' ile kullanıcı dokümanı oluşturuluyor
+      await setDoc(doc(db, 'Users', currentUser.uid), {
         displayName: displayName,
         email: email,
         phoneNumber: phoneNumber,
@@ -41,11 +44,18 @@ export default function RegisterScreen() {
       });
 
       // Kullanıcı oturum bilgisini AsyncStorage'da sakla
-      await AsyncStorage.setItem('user', JSON.stringify(currentUser));
+      await AsyncStorage.setItem('user', JSON.stringify({
+        uid: currentUser.uid,
+        displayName: displayName,
+        email: email,
+      }));
+
       setUser(currentUser); // Kullanıcı bilgisini state'de sakla
       Alert.alert('Başarılı', 'Kayıt başarılı!');
     } catch (error) {
       Alert.alert('Hata', `Kayıt sırasında hata oluştu: ${error.message}`);
+    } finally {
+      setLoading(false); // Yüklenme durumunu durdur
     }
   };
 
@@ -61,6 +71,8 @@ export default function RegisterScreen() {
         value={email}
         onChangeText={setEmail}
         style={styles.input}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         placeholder="Şifre"
@@ -90,12 +102,12 @@ export default function RegisterScreen() {
         keyboardType="phone-pad"
       />
       <TextInput
-        placeholder="Doğum Tarihi"
+        placeholder="Doğum Tarihi (GG/AA/YYYY)"
         value={birthDate}
         onChangeText={setBirthDate}
         style={styles.input}
       />
-      <Button title="Kayıt Ol" onPress={handleRegister} />
+      <Button title={loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'} onPress={handleRegister} disabled={loading} />
     </View>
   );
 }
@@ -105,13 +117,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
   },
   input: {
-    width: '80%',
+    width: '100%',
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 15,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
+    backgroundColor: '#fff',
   },
 });

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, TextInput, Button, FlatList, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { db, auth } from './../../config/firebaseConfig';
-import { collection, doc, addDoc, query, orderBy, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
-import { useLocalSearchParams } from 'expo-router';
+import { collection, doc, addDoc, query, orderBy, onSnapshot, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 
 export default function ChatScreen() {
   const { ownerId, animalId } = useLocalSearchParams();
@@ -11,26 +11,32 @@ export default function ChatScreen() {
   const [currentUser, setCurrentUser] = useState(null);
   const [chatId, setChatId] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [otherUserName, setOtherUserName] = useState('Chat');
+  const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged(user => {
       setCurrentUser(user);
       setLoadingAuth(false);
     });
-
     return () => unsubscribeAuth();
   }, []);
 
   useEffect(() => {
     if (!currentUser || !ownerId || !animalId) return;
-
+  
     let unsubscribe;
-
+  
     const createOrLoadChat = async () => {
       try {
+        if (currentUser.uid === ownerId) {
+          console.error('Cannot start a chat with yourself.');
+          return;
+        }
+  
         const chatIdGenerated = [currentUser.uid, ownerId, animalId].sort().join('_');
         setChatId(chatIdGenerated);
-
+  
         const chatRef = doc(db, 'chats', chatIdGenerated);
         const chatDoc = await getDoc(chatRef);
 
@@ -43,9 +49,19 @@ export default function ChatScreen() {
           });
         }
 
+        const otherUserDoc = await getDoc(doc(db, 'Users', ownerId));
+        if (otherUserDoc.exists()) {
+          const otherUserData = otherUserDoc.data();
+          const displayName = otherUserData.displayName || 'Chat';
+          setOtherUserName(displayName);
+          
+          // Başlığı güncelle
+          navigation.setOptions({ title: displayName });
+        }
+
         const messagesRef = collection(db, 'chats', chatIdGenerated, 'messages');
         const q = query(messagesRef, orderBy('timestamp', 'asc'));
-
+  
         unsubscribe = onSnapshot(q, (querySnapshot) => {
           const messagesFirestore = querySnapshot.docs.map(doc => ({
             id: doc.id,
@@ -57,32 +73,31 @@ export default function ChatScreen() {
         console.error('Error loading chat:', error);
       }
     };
-
+  
     createOrLoadChat();
-
+  
     return () => {
       if (unsubscribe) unsubscribe();
     };
   }, [currentUser, ownerId, animalId]);
+  
 
   const sendMessage = async () => {
     if (messageText.trim() === '' || !chatId) return;
 
     try {
       const messagesRef = collection(db, 'chats', chatId, 'messages');
-
       await addDoc(messagesRef, {
         senderId: currentUser.uid,
         text: messageText,
         timestamp: new Date(),
       });
 
-      const chatRef = doc(db, 'chats', chatId);
-      await setDoc(chatRef, {
+      await updateDoc(doc(db, 'chats', chatId), {
         lastMessage: messageText,
         lastUpdated: new Date(),
-      }, { merge: true });
-
+      });
+      
       setMessageText('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -97,14 +112,11 @@ export default function ChatScreen() {
     return <Text>Please log in to continue.</Text>;
   }
 
-  const renderItem = ({ item }) => {
-    const isMyMessage = item.senderId === currentUser.uid;
-    return (
-      <View style={[styles.messageContainer, isMyMessage ? styles.myMessage : styles.otherMessage]}>
-        <Text style={styles.messageText}>{item.text}</Text>
-      </View>
-    );
-  };
+  const renderItem = ({ item }) => (
+    <View style={[styles.messageContainer, item.senderId === currentUser.uid ? styles.myMessage : styles.otherMessage]}>
+      <Text style={styles.messageText}>{item.text}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>

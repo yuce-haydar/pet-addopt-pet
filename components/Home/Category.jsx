@@ -51,7 +51,6 @@ const Category = ({ onCategorySelect }) => {
             onPress={() => {
               setSelectedCategory(item.name);
               onCategorySelect(item.name);
-              console.log(item.name);
             }}
           >
             {item?.imageUrl ? (

@@ -9,7 +9,8 @@ export default function Index() {
   const rootNavigationState = useRootNavigationState();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const auser = auth.currentUser;
+  console.log('Kullanıcı:', user);
   useEffect(() => {
     // AsyncStorage ile oturum bilgisini kontrol etme
     const checkUserSession = async () => {

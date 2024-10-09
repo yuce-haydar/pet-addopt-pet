@@ -5,7 +5,6 @@ import { TouchableOpacity } from "react-native";
 
 export default function PetListItem({ pet }) {
   const router = useRouter();
-
   return (
     <TouchableOpacity
       onPress={() => {

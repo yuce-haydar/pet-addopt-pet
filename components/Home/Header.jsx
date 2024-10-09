@@ -1,11 +1,11 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import React from "react";
-import { auth } from './../../config/firebaseConfig'; // Firebase auth'ı import ediyoruz
+import { auth } from './../../config/firebaseConfig';
 
 export default function Header() {
-  console.log(auth)
-  const user = auth.currentUser; // Giriş yapan kullanıcıyı al
-  
+  const user = auth.currentUser;
+
+    
   // Kullanıcının adının ilk harfini almak için
   const userInitial = user?.displayName ? user.displayName.charAt(0).toUpperCase() : '';
 

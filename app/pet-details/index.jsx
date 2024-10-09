@@ -1,66 +1,56 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
-import { FontAwesome, MaterialCommunityIcons, Fontisto, MaterialIcons } from "@expo/vector-icons";
+import { View, ScrollView, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from "react-native";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, router } from "expo-router";
-import { doc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
-import { db, auth } from '../../config/firebaseConfig'; 
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
+import { db, auth } from '../../config/firebaseConfig';
 
 export default function PetDetails() {
-  let pet = useLocalSearchParams();
+  const pet = useLocalSearchParams();
   const navigation = useNavigation();
   const [isFavorited, setIsFavorited] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const userEmail = auth.currentUser?.email;
   const userId = auth.currentUser?.uid;
 
+  // Favori durumunu kontrol eden fonksiyon
   useEffect(() => {
     const fetchFavoriteStatus = async () => {
       try {
         const userRef = doc(db, "UserFavPet", userEmail);
         const userDoc = await getDoc(userRef);
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          if (userData.favorites && userData.favorites.includes(pet.id)) {
-            setIsFavorited(true);
-          }
+        if (userDoc.exists() && userDoc.data().favorites?.includes(pet.id)) {
+          setIsFavorited(true);
         }
       } catch (error) {
         console.error("Favori durumu alınamadı:", error);
       }
     };
-
     fetchFavoriteStatus();
-  }, [pet.id]);
+  }, [pet.id, userEmail]);
 
+  // Kullanıcının sahibi olup olmadığını kontrol etme
   useEffect(() => {
-    if (pet.ownerId === userId) {
-      setIsOwner(true);
-    }
+    setIsOwner(pet.ownerId === userId);
   }, [pet.ownerId, userId]);
 
+  // Favori ekleme/çıkarma
   const toggleFavorite = async () => {
     try {
       const userRef = doc(db, "UserFavPet", userEmail);
-      const userDoc = await getDoc(userRef);
-
       if (isFavorited) {
         await updateDoc(userRef, {
           favorites: arrayRemove(pet.id),
         });
         setIsFavorited(false);
       } else {
-        if (userDoc.exists()) {
-          await updateDoc(userRef, {
-            favorites: arrayUnion(pet.id),
-          });
-        } else {
-          await setDoc(userRef, {
-            email: userEmail,
-            favorites: [pet.id],
-          });
-        }
+        await updateDoc(userRef, {
+          favorites: arrayUnion(pet.id),
+        });
         setIsFavorited(true);
       }
     } catch (error) {
@@ -68,46 +58,54 @@ export default function PetDetails() {
     }
   };
 
+  // Yükleme durumunu yönetme
   useEffect(() => {
-    navigation.setOptions({
-      headerTransparent: true,
-      headerTitle: "",
-    });
-    console.log(pet.imageUrl);
+    navigation.setOptions({ headerTransparent: true, headerTitle: "" });
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 1500);
   }, []);
 
+  // Mesajlaşma ekranına yönlendirme
   const handleAdoptMePress = () => {
     router.push({
       pathname: "/ChatScreen",
-      params: {
-        ownerId: pet.ownerId,
-        animalId: pet.pet_id,
-      },
+      params: { ownerId: pet.ownerId, animalId: pet.id },
     });
   };
 
+  // Hayvan düzenleme ekranına yönlendirme
   const handleEditPetPress = () => {
     router.push({
       pathname: "/EditPet",
-      params: {
-        animalId: pet.pet_id,
-      },
+      params: { animalId: pet.id },
     });
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6347" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        {/* Pet Image */}
-        <Image source={{ uri: pet?.imageUrl }} style={styles.image} />
+        {!imageLoaded && (
+          <ActivityIndicator size="large" color="#FF6347" style={styles.imageLoader} />
+        )}
+        <Image
+          source={{ uri: pet?.imageUrl }}
+          style={styles.image}
+          onLoadEnd={() => setImageLoaded(true)}
+        />
 
-        {/* Pet Info */}
         <View style={styles.infoContainer}>
           <View style={styles.headerRow}>
             <Text style={styles.name}>{pet?.name}</Text>
-
-            {/* Kalp ikonu */}
-            <TouchableOpacity onPress={toggleFavorite}>
+            <TouchableOpacity onPress={toggleFavorite} style={styles.favoriteButton}>
               <FontAwesome 
                 name={isFavorited ? "heart" : "heart-o"} 
                 size={24} 
@@ -117,35 +115,27 @@ export default function PetDetails() {
           </View>
           <Text style={styles.address}>{pet?.address}</Text>
 
-          {/* Pet Properties */}
-          <View style={styles.propertiesContainer}>
-            {/* ... (other properties) */}
-          </View>
-
-          {/* About Section */}
           <Text style={styles.sectionTitle}>About {pet.name}</Text>
           <Text style={styles.description}>
-            {showFullDescription ? pet.about : `${pet.about.substring(0, 100)}...`}
+            {showFullDescription ? pet.about : `${pet.about?.substring(0, 100)}...`}
           </Text>
           <TouchableOpacity onPress={() => setShowFullDescription(!showFullDescription)}>
-            <Text style={styles.readMoreText}>{showFullDescription ? 'Read Less' : 'Read More'}</Text>
+            <Text style={styles.readMoreText}>
+              {showFullDescription ? 'Read Less' : 'Read More'}
+            </Text>
           </TouchableOpacity>
 
-          {/* Owner Info */}
           <View style={styles.ownerContainer}>
             <Image source={{ uri: pet?.userImage }} style={styles.ownerImage} />
             <View style={styles.ownerInfo}>
               <Text style={styles.ownerName}>{pet?.ownerEmail}</Text>
               <Text style={styles.ownerLabel}>Pet Owner</Text>
             </View>
-            
-            {/* Send Message Icon */}
             <TouchableOpacity style={styles.messageIconContainer} onPress={handleAdoptMePress}>
               <MaterialIcons name="message" size={24} color="#333" />
             </TouchableOpacity>
           </View>
 
-          {/* Koşullu Olarak Düğmeleri Göster */}
           {isOwner ? (
             <>
               <TouchableOpacity style={styles.adoptButton} onPress={handleEditPetPress}>
@@ -165,14 +155,27 @@ export default function PetDetails() {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageLoader: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -25 }, { translateY: -25 }],
+  },
   image: {
     width: "100%",
     height: 300,
+    resizeMode: "cover",
   },
   infoContainer: {
     padding: 20,
@@ -186,37 +189,27 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
   },
+  favoriteButton: {
+    padding: 8,
+  },
   address: {
     fontSize: 16,
     color: "gray",
     marginVertical: 8,
   },
-  propertiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap", 
-    justifyContent: "space-between",
-    marginVertical: 16,
-  },
-  propertyBox: {
-    backgroundColor: "#f9f9f9",
-    padding: 15,
-    borderRadius: 10,
-    width: "48%", 
-    alignItems: "center",
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#FABB00",
-  },
-  propertyTitle: {
-    fontSize: 14,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
-    marginTop: 5,
+    marginTop: 10,
   },
-  propertyText: {
+  description: {
     fontSize: 14,
     color: "#555",
-    marginTop: 5,
+    marginVertical: 8,
+  },
+  readMoreText: {
+    fontSize: 14,
+    color: "#FF6347",
   },
   ownerContainer: {
     flexDirection: "row",

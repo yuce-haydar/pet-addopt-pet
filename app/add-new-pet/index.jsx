@@ -34,7 +34,6 @@ export default function AddNewPet() {
 
   // Kullanıcı verileri
   const user = auth.currentUser;
-  console.log('Kullanıcı:', user);
 
   // Resim seçme fonksiyonu
   const pickImage = async () => {
@@ -58,9 +57,7 @@ export default function AddNewPet() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         setImageUri(asset.uri);
-        console.log('Seçilen resim URI:', asset.uri);
       } else {
-        console.log('Resim seçimi iptal edildi');
       }
     } catch (error) {
       console.error('Resim seçerken hata oluştu:', error);

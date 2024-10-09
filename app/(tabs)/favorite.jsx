@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, FlatList, ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
 import { collection, getDoc, doc } from "firebase/firestore";
-import { db } from "../../config/firebaseConfig";
+import { db, auth } from "../../config/firebaseConfig";
 import PetListItem from "../../components/Home/PetListItem";
 import { useNavigation } from "@react-navigation/native";
 
@@ -9,45 +9,60 @@ export default function Favorite() {
   const [favoritePets, setFavoritePets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigation = useNavigation();
 
-  // Kullanıcı e-postası (Bu, giriş yapan kullanıcıya göre dinamik olmalıdır)
-  const userEmail = "haydar8w@gmail.com";
+  useEffect(() => {
+    // Kullanıcının oturum açma durumunu dinle
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
 
-  // Favori petleri Firestore'dan çek
+    return () => unsubscribeAuth();
+  }, []);
+
   const fetchFavoritePets = async () => {
+    if (!currentUser) {
+      setLoading(false);
+      setError("Lütfen favori petlerinizi görmek için giriş yapın.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const userRef = doc(db, "UserFavPet", userEmail);
+      const userRef = doc(db, "UserFavPet", currentUser.email);
       const userDoc = await getDoc(userRef);
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const favoriteIds = userData.favorites || [];
 
-        console.log("Kullanıcı Belgesi:", userData);
-        console.log("Favori Pet ID'leri:", favoriteIds);
-
         if (favoriteIds.length > 0) {
-          const petsArray = [];
-
-          // Favori pet ID'leri üzerinde döngü yaparak her birini Firestore'dan al
-          for (let petId of favoriteIds) {
-            try {
-              const petRef = doc(db, "Pets", petId);
-              const petDoc = await getDoc(petRef);
-
-              if (petDoc.exists()) {
-                petsArray.push({ id: petDoc.id, ...petDoc.data() });
+          // Favori petleri paralel olarak almak için Promise.all kullanıyoruz
+          const petsArray = await Promise.all(
+            favoriteIds.map(async (petId) => {
+              try {
+                const petRef = doc(db, "Pets", petId);
+                const petDoc = await getDoc(petRef);
+                if (petDoc.exists()) {
+                  return { id: petDoc.id, ...petDoc.data() };
+                }
+                return null; // Belirli pet bulunamazsa null dönüyoruz
+              } catch (error) {
+                console.error(`Pet ID'si ${petId} alınırken hata oluştu:`, error);
+                return null; // Hata durumunda null dönüyoruz
               }
-            } catch (error) {
-              console.error(`Pet ID'si ${petId} alınırken hata oluştu:`, error);
-            }
-          }
+            })
+          );
 
-          setFavoritePets(petsArray);
+          // Null olmayan petleri filtreliyoruz
+          setFavoritePets(petsArray.filter((pet) => pet !== null));
         } else {
           setFavoritePets([]);
         }
@@ -71,7 +86,7 @@ export default function Favorite() {
       headerTransparent: true,
       headerTitle: "Favorite Pets",
     });
-  }, []);
+  }, [currentUser]);
 
   return (
     <View style={styles.container}>
@@ -83,7 +98,7 @@ export default function Favorite() {
 
       {error && <Text style={styles.errorText}>{error}</Text>}
 
-      {!loading && favoritePets.length === 0 && (
+      {!loading && favoritePets.length === 0 && !error && (
         <Text style={styles.emptyText}>Henüz favorilere eklenmiş pet yok.</Text>
       )}
 
@@ -111,14 +126,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   loadingContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: 'rgba(255,255,255,0.7)', // Optional: to dim the background
+    backgroundColor: 'rgba(255,255,255,0.7)',
   },
   card: {
     backgroundColor: "#f9f9f9",
