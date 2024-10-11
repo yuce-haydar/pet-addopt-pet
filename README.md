@@ -1,15 +1,18 @@
 # Proje Adı
 
-Bu proje, **Proje Adı** altında geliştirilen bir [Expo](https://expo.dev) uygulamasıdır. Proje, kullanıcılara **proje amacını kısaca açıklayın (örneğin, hayvan sahiplendirme uygulaması)** sağlamak için geliştirilmiştir.
+Bu proje, **pet addopt** altında geliştirilen bir [Expo](https://expo.dev) uygulamasıdır. Proje, kullanıcılara **Hayvan sahiplendirme uygulaması)** sağlamak için geliştirilmiştir.
 
 ## 📱 Ekran Görüntüleri
 
 Aşağıda, uygulamanın bazı ekran görüntülerini bulabilirsiniz:
 
-![Screenshot 1](./assets/screenshots/sa.jpg)
-![Screenshot 2](./assets/screenshots/sa2.jpg)
-![Screenshot 3](./assets/screenshots/sa3.jpg)
-
+<img src="./assets/screenshots/sa.jpg" alt="Screenshot 1" width="400"/>
+<img src="./assets/screenshots/sa2.jpg" alt="Screenshot 2" width="400"/>
+<img src="./assets/screenshots/sa3.jpg" alt="Screenshot 3" width="400"/>
+<img src="./assets/screenshots/sa4.jpg" alt="Screenshot 1" width="400"/>
+<img src="./assets/screenshots/sa5.jpg" alt="Screenshot 2" width="400"/>
+<img src="./assets/screenshots/sa6.jpg" alt="Screenshot 3" width="400"/>
+<img src="./assets/screenshots/sa7.jpg" alt="Screenshot 3" width="400"/>
 ## 🚀 Başlarken
 
 Bu proje, [Node.js](https://nodejs.org/) ve [Expo CLI](https://docs.expo.dev/) gerektirmektedir. Projeyi başlatmak için aşağıdaki adımları izleyin.
