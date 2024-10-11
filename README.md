@@ -26,7 +26,7 @@ Aşağıda, uygulamanın bazı ekran görüntülerini bulabilirsiniz:
 </p>
 <p align="center">
   
-  <img src="./assets/screenshots/sa10.jpg" alt="Evcil Hayvan Listesi" width="250"/>
+  <img src="./assets/screenshots/s10.jpg" alt="Evcil Hayvan Listesi" width="250"/>
   <img src="./assets/screenshots/sa8.jpg" alt="Hayvan Detayları" width="250"/>
     <img src="./assets/screenshots/sa4.jpg" alt="Kayıt Ol Ekranı" width="250"/>
  
