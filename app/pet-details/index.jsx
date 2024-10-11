@@ -97,14 +97,15 @@ export default function PetDetails() {
           <ActivityIndicator size="large" color="#FF6347" style={styles.imageLoader} />
         )}
         <Image
-          source={{ uri: pet?.imageUrl }}
-          style={styles.image}
-          onLoadEnd={() => setImageLoaded(true)}
-        />
+  source={{ uri: pet?.imageUrl.replace('addpet/', 'addpet%2F') }}
+  style={styles.image}
+  onLoadEnd={() => setImageLoaded(true)}
+/>
+        { console.log(pet.imageUrl) }
 
         <View style={styles.infoContainer}>
           <View style={styles.headerRow}>
-            <Text style={styles.name}>{pet?.name}</Text>
+            <Text style={styles.name}>{pet?.petName}</Text>
             <TouchableOpacity onPress={toggleFavorite} style={styles.favoriteButton}>
               <FontAwesome 
                 name={isFavorited ? "heart" : "heart-o"} 
@@ -115,7 +116,7 @@ export default function PetDetails() {
           </View>
           <Text style={styles.address}>{pet?.address}</Text>
 
-          <Text style={styles.sectionTitle}>About {pet.name}</Text>
+          <Text style={styles.sectionTitle}>About {pet.petName}</Text>
           <Text style={styles.description}>
             {showFullDescription ? pet.about : `${pet.about?.substring(0, 100)}...`}
           </Text>
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 300,
+    height: 400,
     resizeMode: "cover",
   },
   infoContainer: {

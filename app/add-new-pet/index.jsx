@@ -13,12 +13,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import { db, storage, auth } from '../../config/firebaseConfig'; // Firebase ayarlarını import ediyoruz
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Gerekli fonksiyonları import ediyoruz
-import { doc, setDoc } from 'firebase/firestore'; // Firestore fonksiyonlarını import ediyoruz
+import { db, storage, auth } from '../../config/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function AddNewPet() {
-  // Form durum değişkenleri
   const [formData, setFormData] = useState({
     petName: '',
     breed: '',
@@ -32,14 +31,11 @@ export default function AddNewPet() {
   const [imageUri, setImageUri] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // Kullanıcı verileri
   const user = auth.currentUser;
 
-  // Resim seçme fonksiyonu
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
       if (status !== 'granted') {
         Alert.alert(
           'İzin Gerekli',
@@ -58,6 +54,7 @@ export default function AddNewPet() {
         const asset = result.assets[0];
         setImageUri(asset.uri);
       } else {
+        Alert.alert('Bilgi', 'Herhangi bir resim seçmediniz.');
       }
     } catch (error) {
       console.error('Resim seçerken hata oluştu:', error);
@@ -65,7 +62,6 @@ export default function AddNewPet() {
     }
   };
 
-  // Form verilerini güncelleme fonksiyonu
   const handleInputChange = (name, value) => {
     setFormData({
       ...formData,
@@ -73,9 +69,7 @@ export default function AddNewPet() {
     });
   };
 
-  // Form verilerini ve resmi kaydetme fonksiyonu
   const handleAddPet = async () => {
-    // Form verilerinin doluluğunu kontrol edin
     if (
       !formData.petName ||
       !formData.breed ||
@@ -94,47 +88,26 @@ export default function AddNewPet() {
     setUploading(true);
 
     try {
-      // Benzersiz bir belge ID'si oluşturun
       const docId = Date.now().toString();
 
-      // Resmi Blob olarak okuyun
-      const blob = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-          resolve(xhr.response);
-        };
-        xhr.onerror = function (e) {
-          console.error('xhr.onerror', e);
-          reject(new TypeError('Ağ isteği başarısız oldu'));
-        };
-        xhr.responseType = 'blob';
-        xhr.open('GET', imageUri, true);
-        xhr.send(null);
-      });
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
 
-      // Resmi Firebase Storage'daki 'addpet' klasörüne yükleyin
       const imageRef = ref(storage, `addpet/${docId}.jpg`);
       await uploadBytes(imageRef, blob);
 
-      // Blob'u serbest bırakın
-      blob.close();
-
-      // Resmin indirme URL'sini alın
       const imageUrl = await getDownloadURL(imageRef);
 
-      // Form verilerini Firestore'a kaydedin
       await setDoc(doc(db, 'Pets', docId), {
         ...formData,
         imageUrl: imageUrl,
-        ownerId: user?.uid, // Evcil hayvanı ekleyen kullanıcının uid'si
-        ownerName: user?.displayName || 'Anonymous', // Kullanıcının adı
-        ownerEmail: user?.email, // Kullanıcının email adresi
+        ownerId: user?.uid,
+        ownerName: user?.displayName || 'Anonymous',
+        ownerEmail: user?.email,
         createdAt: new Date(),
       });
 
       Alert.alert('Başarılı', 'Evcil hayvan başarıyla eklendi!');
-
-      // Form alanlarını sıfırlayın
       setFormData({
         petName: '',
         breed: '',
@@ -158,8 +131,6 @@ export default function AddNewPet() {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <Text style={styles.title}>Evcil Hayvan Sahiplendirme</Text>
-
-        {/* Evcil Hayvan Resmi */}
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={pickImage}>
             {imageUri ? (
@@ -170,7 +141,6 @@ export default function AddNewPet() {
           </TouchableOpacity>
         </View>
 
-        {/* Form Alanları */}
         <TextInput
           style={styles.input}
           placeholder="Evcil Hayvan İsmi *"
@@ -212,7 +182,6 @@ export default function AddNewPet() {
           numberOfLines={4}
         />
 
-        {/* Kategori Seçimi */}
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerLabel}>Kategori *</Text>
           <Picker
@@ -228,7 +197,6 @@ export default function AddNewPet() {
           </Picker>
         </View>
 
-        {/* Cinsiyet Seçimi */}
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerLabel}>Cinsiyet *</Text>
           <Picker
@@ -242,7 +210,6 @@ export default function AddNewPet() {
           </Picker>
         </View>
 
-        {/* Gönder Butonu */}
         <TouchableOpacity
           style={styles.submitButton}
           onPress={handleAddPet}
@@ -254,7 +221,6 @@ export default function AddNewPet() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Yükleniyor Ekranı */}
       {uploading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#fabb00" />
@@ -264,6 +230,7 @@ export default function AddNewPet() {
     </SafeAreaView>
   );
 }
+
 
 // Stiller
 const styles = StyleSheet.create({

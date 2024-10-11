@@ -8,13 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncSt
 
 // Firebase projenizin yapılandırma ayarları
 const firebaseConfig = {
-  apiKey: "AIzaSyCQFdJm67qIWsX2x-g4CUW193hOuWxUa0s",
-  authDomain: "pet-opt.firebaseapp.com",
-  projectId: "pet-opt",
-  storageBucket: "pet-opt.appspot.com",
-  messagingSenderId: "641953943830",
-  appId: "1:641953943830:web:a7ad07bba5073ff0bbc037",
-  measurementId: "G-574V769P1R"
+ //yours api key
+  
 };
 
 

@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { auth, db } from './../../config/firebaseConfig'; // Firebase Auth ve Firestore
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
+import { auth, db } from './../../config/firebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Redirect } from 'expo-router'; // Expo-router için
+import { Redirect } from 'expo-router';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -17,24 +25,20 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    // Şifrelerin eşleşip eşleşmediğini kontrol etme
     if (password !== confirmPassword) {
       Alert.alert('Hata', 'Şifreler eşleşmiyor!');
       return;
     }
 
     try {
-      setLoading(true); // Yüklenme durumunu başlat
-      // Firebase Authentication ile kullanıcı oluşturma
+      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const currentUser = userCredential.user;
 
-      // Kullanıcı profilini güncelleme (displayName)
       await updateProfile(currentUser, {
         displayName: displayName,
       });
 
-      // Kullanıcı bilgilerini Firestore'da saklama
       await setDoc(doc(db, 'Users', currentUser.uid), {
         displayName: displayName,
         email: email,
@@ -43,29 +47,31 @@ export default function RegisterScreen() {
         createdAt: new Date(),
       });
 
-      // Kullanıcı oturum bilgisini AsyncStorage'da sakla
       await AsyncStorage.setItem('user', JSON.stringify({
         uid: currentUser.uid,
         displayName: displayName,
         email: email,
       }));
 
-      setUser(currentUser); // Kullanıcı bilgisini state'de sakla
+      setUser(currentUser);
       Alert.alert('Başarılı', 'Kayıt başarılı!');
     } catch (error) {
       Alert.alert('Hata', `Kayıt sırasında hata oluştu: ${error.message}`);
     } finally {
-      setLoading(false); // Yüklenme durumunu durdur
+      setLoading(false);
     }
   };
 
-  // Kullanıcı giriş yaptıysa ana sayfaya yönlendirme
   if (user) {
     return <Redirect href="/(tabs)/home" />;
   }
 
   return (
     <View style={styles.container}>
+      <Text style={{fontSize:36
+        ,marginBottom:20
+
+      }}>Register </Text>
       <TextInput
         placeholder="E-posta"
         value={email}
@@ -107,7 +113,17 @@ export default function RegisterScreen() {
         onChangeText={setBirthDate}
         style={styles.input}
       />
-      <Button title={loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'} onPress={handleRegister} disabled={loading} />
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={handleRegister}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Kayıt Ol</Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
@@ -122,11 +138,26 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    padding: 10,
+    padding: 15,
     marginBottom: 15,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: '#fff',
+  },
+  button: {
+    backgroundColor: '#fabb00',
+    paddingVertical: 15,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#ddd',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

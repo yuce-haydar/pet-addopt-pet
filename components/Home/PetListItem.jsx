@@ -23,7 +23,7 @@ export default function PetListItem({ pet }) {
         <Image style={styles.image} source={{ uri: pet.imageUrl }} />
       )}
       <View style={styles.txtContainer}>
-        <Text style={styles.petName}>{pet.name}</Text>
+        <Text style={styles.petName}>{pet.petName}</Text>
         <View style={styles.row}>
           <Text style={styles.petBreed}>{pet.breed}</Text>
           <Text style={styles.petAge}>{pet.age} YRS</Text>
