@@ -12,13 +12,24 @@ Aşağıda, uygulamanın bazı ekran görüntülerini bulabilirsiniz:
 
 <p align="center">
   <img src="./assets/screenshots/sa.jpg" alt="Ana Sayfa" width="250"/>
-  <img src="./assets/screenshots/sa2.jpg" alt="Giriş Ekranı" width="250"/>
-  <img src="./assets/screenshots/sa4.jpg" alt="Kayıt Ol Ekranı" width="250"/>
+   <img src="./assets/screenshots/sa9.jpg" alt="Profil Sayfası" width="250"/>
+    <img src="./assets/screenshots/sa5.jpg" alt="Evcil Hayvan Listesi" width="250"/>
+
 </p>
 <p align="center">
-  <img src="./assets/screenshots/sa5.jpg" alt="Evcil Hayvan Listesi" width="250"/>
-  <img src="./assets/screenshots/sa6.jpg" alt="Hayvan Detayları" width="250"/>
+  <img src="./assets/screenshots/sa2.jpg" alt="Giriş Ekranı" width="250"/>
+   <img src="./assets/screenshots/sa6.jpg" alt="Hayvan Detayları" width="250"/>
+  
   <img src="./assets/screenshots/sa7.jpg" alt="Profil Sayfası" width="250"/>
+
+
+</p>
+<p align="center">
+  
+  <img src="./assets/screenshots/sa10.jpg" alt="Evcil Hayvan Listesi" width="250"/>
+  <img src="./assets/screenshots/sa8.jpg" alt="Hayvan Detayları" width="250"/>
+    <img src="./assets/screenshots/sa4.jpg" alt="Kayıt Ol Ekranı" width="250"/>
+ 
 </p>
 
 ## 🚀 Başlarken
