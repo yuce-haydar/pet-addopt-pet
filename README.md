@@ -8,7 +8,6 @@ Aşağıda, uygulamanın bazı ekran görüntülerini bulabilirsiniz:
 
 <img src="./assets/screenshots/sa.jpg" alt="Screenshot 1" width="400"/>
 <img src="./assets/screenshots/sa2.jpg" alt="Screenshot 2" width="400"/>
-<img src="./assets/screenshots/sa3.jpg" alt="Screenshot 3" width="400"/>
 <img src="./assets/screenshots/sa4.jpg" alt="Screenshot 1" width="400"/>
 <img src="./assets/screenshots/sa5.jpg" alt="Screenshot 2" width="400"/>
 <img src="./assets/screenshots/sa6.jpg" alt="Screenshot 3" width="400"/>
