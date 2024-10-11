@@ -1,4 +1,4 @@
-# Proje Adı
+# Adopt a pet 
 
 Bu proje, **pet addopt** altında geliştirilen bir [Expo](https://expo.dev) uygulamasıdır. Proje, kullanıcılara **Hayvan sahiplendirme uygulaması)** sağlamak için geliştirilmiştir.
 
